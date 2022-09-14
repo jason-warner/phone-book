@@ -9,12 +9,12 @@
     "nodemon": "^2.0.19"
   },
   "scripts": {
-    "start": "nodemon ./build/server.js && tsc -w"
+    "start": "nodemon ./build/index.js && tsc -w"
   },
   "name": "gql-server",
   "version": "1.0.0",
   "description": "phone-book crud GQL server",
-  "main": "server.js",
+  "main": "index.js",
   "devDependencies": {
     "@types/dotenv": "^8.2.0",
     "@types/graphql": "^14.5.0",
