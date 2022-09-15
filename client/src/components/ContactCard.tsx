@@ -16,7 +16,7 @@ import {
 
 export const ContactCard = (props: IContactCard) => {
 
-    const { firstName, lastName, phoneNumber } = props;
+    const { firstName, lastName, phoneNumber, Key } = props;
     const name = `${firstName} ${lastName}`;
     const buttonStyle = {
         borderRadius: '100%',
@@ -38,9 +38,9 @@ export const ContactCard = (props: IContactCard) => {
 
 
     return (
-        <ThemeProvider theme={theme}>
-            <Card className='contactCard flex w-full my-1'>
-                <Box className='flex flex-col w-full'>
+        <Card key={Key} className='contactCard flex w-full my-1'>
+            <Box className='flex flex-col w-full'>
+                <ThemeProvider theme={theme}>
                     <CardContent sx={{ padding: '1rem' }} className='flex flex-row w-full'>
                         <div className='flex flex-col h-full w-full justify-between'>
                             <h5 className='contactCard flex flex-row font-medium pb-2'>
@@ -58,15 +58,15 @@ export const ContactCard = (props: IContactCard) => {
                         </Button>
 
                     </CardContent>
-
-                </Box>
-            </Card>
-        </ThemeProvider>
+                </ThemeProvider>
+            </Box>
+        </Card>
     )
 }
 
 
 export interface IContactCard {
+    Key: React.Key
     firstName: String
     lastName: String
     phoneNumber: String

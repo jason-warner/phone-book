@@ -77,13 +77,13 @@ function App() {
 
             {/* DB.map(() =>  */}
             <li className='flex flex-row'>
-              <ContactCard firstName={'Jason'} lastName={'Warner'} phoneNumber={'(234) 874-3423'} />
+              <ContactCard Key={'temp-hard-coded-1'} firstName={'Jason'} lastName={'Warner'} phoneNumber={'(234) 874-3423'} />
             </li>
             <li className='flex flex-row'>
-              <ContactCard firstName={'Jason'} lastName={'Warner'} phoneNumber={'(234) 874-3423'} />
+              <ContactCard Key={'temp-hard-coded-2'} firstName={'Jason'} lastName={'Warner'} phoneNumber={'(234) 874-3423'} />
             </li>
             <li className='flex flex-row'>
-              <ContactCard firstName={'Jason'} lastName={'Warner'} phoneNumber={'(234) 874-3423'} />
+              <ContactCard Key={'temp-hard-coded-3'} firstName={'Jason'} lastName={'Warner'} phoneNumber={'(234) 874-3423'} />
             </li>
             {/* ) */}
           </ul>

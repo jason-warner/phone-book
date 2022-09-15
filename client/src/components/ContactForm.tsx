@@ -9,7 +9,7 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
-} from '@mui/material' //@ts-ignoree
+} from '@mui/material'
 
 export const ContactForm = (props: IContactForm) => {
 
@@ -22,13 +22,12 @@ export const ContactForm = (props: IContactForm) => {
     });
 
     const updateForm = (field: keyof typeof formData, value: string) => {
-        let newFormData = { ...formData };
+        const newFormData = { ...formData };
         newFormData[field] = value;
-        console.log(field, value, newFormData);
         return setFormData(newFormData);
     }
 
-    React.useEffect(() => console.log('form data: ', formData), [formData]);
+    React.useEffect(() => console.info('form data: ', formData), [formData]);
 
     return (
         <div>
@@ -41,7 +40,8 @@ export const ContactForm = (props: IContactForm) => {
                     <FormControl sx={{ m: 1, width: '25ch' }} variant="outlined">
                         < Box className='flex flex-row'>
                             <TextField
-                                onChange={(props: any) => updateForm('firstName', props.value)}
+                                onChange={({ currentTarget }: React.ChangeEvent<HTMLInputElement>) =>
+                                    updateForm('firstName', currentTarget.value)}
                                 className='w-1/2'
                                 autoFocus
                                 margin="dense"
@@ -52,7 +52,8 @@ export const ContactForm = (props: IContactForm) => {
                                 variant="standard"
                             />
                             <TextField
-                                onChange={(props: any) => updateForm('lastName', props.value)}
+                                onChange={({ currentTarget }: React.ChangeEvent<HTMLInputElement>) =>
+                                    updateForm('lastName', currentTarget.value)}
                                 className='w-1/2'
                                 autoFocus
                                 margin="dense"
@@ -64,8 +65,9 @@ export const ContactForm = (props: IContactForm) => {
                             />
                         </Box>
                         <Box className='flex flex-row w-1/2'>
-                            <TextField
-                                onChange={(props: any) => updateForm('phoneNumber', props.value)}
+                            <TextField //
+                                onChange={({ currentTarget }: React.ChangeEvent<HTMLInputElement>) =>
+                                    updateForm('phoneNumber', currentTarget.value)}
                                 className='w-1/2'
                                 autoFocus
                                 margin="dense"
