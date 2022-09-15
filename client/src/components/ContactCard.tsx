@@ -14,7 +14,7 @@ import {
     DeleteForeverRounded
 } from '@mui/icons-material'
 
-export const ContactCard = (props: IProps) => {
+export const ContactCard = (props: IContactCard) => {
 
     const { firstName, lastName, phoneNumber } = props;
     const name = `${firstName} ${lastName}`;
@@ -39,7 +39,7 @@ export const ContactCard = (props: IProps) => {
 
     return (
         <ThemeProvider theme={theme}>
-            <Card className='contactCard flex w-full'>
+            <Card className='contactCard flex w-full my-1'>
                 <Box className='flex flex-col w-full'>
                     <CardContent sx={{ padding: '1rem' }} className='flex flex-row w-full'>
                         <div className='flex flex-col h-full w-full justify-between'>
@@ -66,7 +66,7 @@ export const ContactCard = (props: IProps) => {
 }
 
 
-export interface IProps {
+export interface IContactCard {
     firstName: String
     lastName: String
     phoneNumber: String

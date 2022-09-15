@@ -2,6 +2,7 @@ import React from 'react';
 import logo from '../assets/logo.svg'
 import '../styles/App.css';
 import { ContactCard } from './ContactCard'
+import { ContactForm } from './ContactForm';
 import {
   ThemeProvider,
   createTheme,
@@ -15,7 +16,14 @@ import {
 } from '@mui/icons-material'
 
 function App() {
-
+  const addContactButtonStyle = {
+    background: '#61dafb',
+    height: 'fit-content',
+    textTransform: 'unset',
+    "&:hover": {
+      background: "white"
+    }
+  }
   const buttonTheme = createTheme({
     components: {
       MuiButton: {
@@ -31,8 +39,7 @@ function App() {
   });
 
 
-
-
+  const [open, setOpen] = React.useState(false);
 
 
 
@@ -53,16 +60,11 @@ function App() {
                 <RecentActorsRounded sx={{ color: '#61dafb', fontSize: 'inherit' }} className='ml-4' />
               </h3>
 
-
               <ThemeProvider theme={buttonTheme}>
-                <Button sx={{
-                  background: '#61dafb',
-                  height: 'fit-content',
-                  textTransform: 'unset',
-                  "&:hover": {
-                    background: "white"
-                  }
-                }} className='self-center'>
+                <Button
+                  onClick={() => setOpen(true)}
+                  sx={addContactButtonStyle}
+                  className='self-center'>
                   <AddRounded sx={{ color: '#282c34' }} className='mr-2' />
                   <h4 className='addContact text-md  lg:text-lg font-bold'>
                     Add Contact
@@ -70,7 +72,16 @@ function App() {
                 </Button>
               </ThemeProvider>
             </Box>
+
+            <ContactForm shouldOpen={open} setShouldOpen={setOpen} />
+
             {/* DB.map(() =>  */}
+            <li className='flex flex-row'>
+              <ContactCard firstName={'Jason'} lastName={'Warner'} phoneNumber={'(234) 874-3423'} />
+            </li>
+            <li className='flex flex-row'>
+              <ContactCard firstName={'Jason'} lastName={'Warner'} phoneNumber={'(234) 874-3423'} />
+            </li>
             <li className='flex flex-row'>
               <ContactCard firstName={'Jason'} lastName={'Warner'} phoneNumber={'(234) 874-3423'} />
             </li>
