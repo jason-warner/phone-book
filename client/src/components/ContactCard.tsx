@@ -1,4 +1,4 @@
-
+import * as React from 'react'
 import {
     createTheme,
     ThemeProvider,
@@ -13,9 +13,11 @@ import {
     BadgeRounded,
     DeleteForeverRounded
 } from '@mui/icons-material'
+import { useContactCtx } from './App';
 
 export const ContactCard = (props: IContactCard) => {
 
+    //// constants
     const { firstName, lastName, phoneNumber, Key } = props;
     const name = `${firstName} ${lastName}`;
     const buttonStyle = {
@@ -35,6 +37,13 @@ export const ContactCard = (props: IContactCard) => {
             }
         }
     });
+
+    //// regional state
+    const { contactCtx } = useContactCtx();
+
+
+    //// local state
+    React.useEffect(() => console.log('contactCtx: ', contactCtx), [contactCtx]);
 
 
     return (

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useContactCtx } from './App'
 import {
     FormControl,
     Box,
@@ -13,21 +14,32 @@ import {
 
 export const ContactForm = (props: IContactForm) => {
 
+    //// regional state
+    const { updateContactCtx } = useContactCtx()
+
+
+    //// constants
     const { shouldOpen, setShouldOpen } = props;
 
-    const [formData, setFormData] = React.useState({
-        firstName: '',
-        lastName: '',
-        phoneNumber: ''
-    });
 
+
+    //// fn's
     const updateForm = (field: keyof typeof formData, value: string) => {
         const newFormData = { ...formData };
         newFormData[field] = value;
         return setFormData(newFormData);
     }
 
-    React.useEffect(() => console.info('form data: ', formData), [formData]);
+
+    //// local state
+    const [formData, setFormData] = React.useState({
+        firstName: '',
+        lastName: '',
+        phoneNumber: ''
+    });
+
+
+    React.useEffect(() => updateContactCtx('payload', formData), [formData]);
 
     return (
         <div>
