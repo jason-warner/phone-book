@@ -31,7 +31,7 @@ export const ContactForm = (props: IContactForm) => {
         return setFormData(newFormData);
     }
     const updateContactList = () => {
-        const key = shortid.generate()
+        const key = shortid.generate();
         const newContact = { ...contactCtx.payload, Key: key };
         const newContactList = contactCtx.contactList;
         newContactList.push(newContact);

@@ -38,8 +38,16 @@ export const ContactCard = (props: IContactCard) => {
         }
     });
 
+    //// fn's
+    const handleDelete = (key: IContactCard['Key']) => {
+        const newContactList = [...contactCtx.contactList];
+        const targetIndex = newContactList.findIndex((x) => x.Key === key);
+        delete newContactList[targetIndex];
+        return updateContactCtx('contactList', newContactList);
+    }
+
     //// regional state
-    // const { contactCtx } = useContactCtx();
+    const { contactCtx, updateContactCtx } = useContactCtx();
 
 
     //// local state
@@ -62,7 +70,7 @@ export const ContactCard = (props: IContactCard) => {
                             </h6>
                         </div>
 
-                        <Button sx={buttonStyle} className='rounded-full'>
+                        <Button onClick={() => handleDelete(Key)} sx={buttonStyle} className='rounded-full'>
                             <DeleteForeverRounded fontSize='large' className='h-full' />
                         </Button>
 

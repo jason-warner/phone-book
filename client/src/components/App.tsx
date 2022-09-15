@@ -96,7 +96,7 @@ function App() {
               {contactCtx.contactList.map((contact: IContactCard) => {
                 const { Key, firstName, lastName, phoneNumber } = contact;
                 return (
-                  <li className='flex flex-row'>
+                  <li key={`contact-card-${Key}`} className='flex flex-row'>
                     <ContactCard Key={Key} firstName={firstName} lastName={lastName} phoneNumber={phoneNumber} />
                   </li>
                 )
