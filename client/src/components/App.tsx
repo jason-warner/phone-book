@@ -3,12 +3,39 @@ import logo from '../assets/logo.svg'
 import '../styles/App.css';
 import { ContactCard } from './ContactCard'
 import {
+  ThemeProvider,
+  createTheme,
   Container,
   Box,
   Button
 } from '@mui/material'
+import {
+  RecentActorsRounded,
+  AddRounded
+} from '@mui/icons-material'
 
 function App() {
+
+  const buttonTheme = createTheme({
+    components: {
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            "&:hover": {
+              color: "white"
+            }
+          }
+        }
+      }
+    }
+  });
+
+
+
+
+
+
+
   return (
     <div className="App">
       <Container>
@@ -19,21 +46,33 @@ function App() {
           </h1>
         </header>
         <main className='addContactTitle flex flex-col'>
-
           <ul className='flex flex-col w-full lg:w-8/12 self-center'>
             <Box className='flex flex-row justify-between py-5'>
-              <h3 className='contactCard text-white font-medium tracking-wide'>Contacts</h3>
-              <Button sx={{
-                background: '#61dafb'
-              }}>
-                <span className='addContact font-bold'>
-                  Add Contact
-                </span>
-              </Button>
+              <h3 className='contactTitle text-white font-medium tracking-wide h-full self-center'>
+                Contacts
+                <RecentActorsRounded sx={{ color: '#61dafb', fontSize: 'inherit' }} className='ml-4' />
+              </h3>
+
+
+              <ThemeProvider theme={buttonTheme}>
+                <Button sx={{
+                  background: '#61dafb',
+                  height: 'fit-content',
+                  textTransform: 'unset',
+                  "&:hover": {
+                    background: "white"
+                  }
+                }} className='self-center'>
+                  <AddRounded sx={{ color: '#282c34' }} className='mr-2' />
+                  <h4 className='addContact text-md  lg:text-lg font-bold'>
+                    Add Contact
+                  </h4>
+                </Button>
+              </ThemeProvider>
             </Box>
             {/* DB.map(() =>  */}
             <li className='flex flex-row'>
-              <ContactCard />
+              <ContactCard firstName={'Jason'} lastName={'Warner'} phoneNumber={'(234) 874-3423'} />
             </li>
             {/* ) */}
           </ul>

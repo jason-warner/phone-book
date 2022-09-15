@@ -28,6 +28,10 @@ code {
     font-size: 2.3rem
   }
 
+  .addContacts {
+    font-size: 1.5rem
+  }
+
   .contactCard {
     font-size: 1.3rem;
   }
@@ -41,6 +45,14 @@ code {
 
   .addContactTitle {
     font-size: 1.3rem;
+  }
+
+  .addContacts {
+    font-size: .8rem
+  }
+
+  .contactTitle {
+    font-size: 1.5rem;
   }
 
   .contactCard {

@@ -3,31 +3,36 @@
 }
 
 .App-logo {
-  height: 5rem;
+  height: 3rem;
   pointer-events: none;
 }
 
 .App-header {
-  margin: 10rem 0 3rem 0;
+  margin: 3rem 0rem 3rem 0rem;
   color: white;
 }
 
 .addContact {
   color: #282c34;
-
 }
 .MuiTouchRipple-root {
   color: #282c34 !important;
 }
-.MuiButton-root:hover {
+/* .MuiButton-root:hover {
   background-color: white !important;
-}
+} */
 
 
 
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+@media screen and (min-width: 601px) {
+  .App-logo {
+    height: 5rem;
   }
 }
 
