@@ -1,7 +1,7 @@
 import React from 'react';
 import logo from '../assets/logo.svg'
 import '../styles/App.css';
-import { ContactCard } from './ContactCard'
+import { ContactCard, IContactCard } from './ContactCard'
 import { ContactForm } from './ContactForm';
 import {
   ThemeProvider,
@@ -46,8 +46,8 @@ function App() {
   const contactFormReducer = (prevState: IContactCtx, newState: IContactCtx) => {
     return ({ ...prevState, ...newState })
   }
-  const updateContactCtx = (field: "payload", value: IContactForm) => {
-    const newContactCtx = { ...contactCtx };
+  const updateContactCtx = (field: keyof typeof initialContactCtx, value: (IPayload | IContactList)) => {
+    const newContactCtx = { ...contactCtx }; //@ts-ignore
     newContactCtx[field] = value;
     return setContactCtx(newContactCtx);
   }
@@ -56,6 +56,8 @@ function App() {
   //// local state
   const [open, setOpen] = React.useState(false);
   const [contactCtx, setContactCtx] = React.useReducer(contactFormReducer, initialContactFormCtx);
+
+  React.useEffect(() => console.log('context: ', contactCtx), [contactCtx]);
 
 
   return (
@@ -91,17 +93,14 @@ function App() {
 
               <ContactForm shouldOpen={open} setShouldOpen={setOpen} />
 
-              {/* DB.map(() =>  */}
-              <li className='flex flex-row'>
-                <ContactCard Key={'temp-hard-coded-1'} firstName={'Jason'} lastName={'Warner'} phoneNumber={'(234) 874-3423'} />
-              </li>
-              <li className='flex flex-row'>
-                <ContactCard Key={'temp-hard-coded-2'} firstName={'Jason'} lastName={'Warner'} phoneNumber={'(234) 874-3423'} />
-              </li>
-              <li className='flex flex-row'>
-                <ContactCard Key={'temp-hard-coded-3'} firstName={'Jason'} lastName={'Warner'} phoneNumber={'(234) 874-3423'} />
-              </li>
-              {/* ) */}
+              {contactCtx.contactList.map((contact: IContactCard) => {
+                const { Key, firstName, lastName, phoneNumber } = contact;
+                return (
+                  <li className='flex flex-row'>
+                    <ContactCard Key={Key} firstName={firstName} lastName={lastName} phoneNumber={phoneNumber} />
+                  </li>
+                )
+              })}
             </ul>
 
           </main>
@@ -117,12 +116,13 @@ const initialContactForm = {
   phoneNumber: ''
 };
 const initialContactCtx = {
-  payload: initialContactForm
+  payload: initialContactForm,
+  contactList: []
 }
 const ContactFormContext = React.createContext<{
   contactCtx: IContactCtx
   setContactCtx?: React.Dispatch<IContactCtx>
-  updateContactCtx: (field: keyof typeof initialContactCtx, value: IContactForm) => void
+  updateContactCtx: (field: keyof typeof initialContactCtx, value: IPayload | IContactList) => void
 }>({
   contactCtx: initialContactCtx,
   setContactCtx: () => undefined,
@@ -130,20 +130,21 @@ const ContactFormContext = React.createContext<{
 });
 
 export const useContactCtx = () => React.useContext<{
-  contactCtx: any
-  setContactCtx?: React.Dispatch<any>
-  updateContactCtx: (field: keyof typeof initialContactCtx, value: IContactForm) => void
+  contactCtx: IContactCtx
+  setContactCtx?: React.Dispatch<IContactCtx>
+  updateContactCtx: (field: keyof typeof initialContactCtx, value: IPayload | IContactList) => void
 }>(ContactFormContext);
 
 export default App;
 
 
-
+type IContactList = IContactCard[];
 
 interface IContactCtx {
-  payload: IContactForm
+  payload: IPayload
+  contactList: IContactList
 }
-interface IContactForm {
+interface IPayload {
   phoneNumber: string
   firstName: string
   lastName: string

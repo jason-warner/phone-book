@@ -39,11 +39,11 @@ export const ContactCard = (props: IContactCard) => {
     });
 
     //// regional state
-    const { contactCtx } = useContactCtx();
+    // const { contactCtx } = useContactCtx();
 
 
     //// local state
-    React.useEffect(() => console.log('contactCtx: ', contactCtx), [contactCtx]);
+    // React.useEffect(() => console.log('contactCtx: ', contactCtx), [contactCtx]);
 
 
     return (

@@ -11,11 +11,12 @@ import {
     DialogContentText,
     DialogTitle,
 } from '@mui/material'
+import shortid from 'shortid'
 
 export const ContactForm = (props: IContactForm) => {
 
     //// regional state
-    const { updateContactCtx } = useContactCtx()
+    const { updateContactCtx, contactCtx } = useContactCtx()
 
 
     //// constants
@@ -29,10 +30,22 @@ export const ContactForm = (props: IContactForm) => {
         newFormData[field] = value;
         return setFormData(newFormData);
     }
+    const updateContactList = () => {
+        const key = shortid.generate()
+        const newContact = { ...contactCtx.payload, Key: key };
+        const newContactList = contactCtx.contactList;
+        newContactList.push(newContact);
+        return newContactList;
+    }
+    const handleSubmit = () => {
+        setShouldOpen(false);
+        updateContactCtx('contactList', updateContactList())
+    }
 
 
     //// local state
     const [formData, setFormData] = React.useState({
+        id: '',
         firstName: '',
         lastName: '',
         phoneNumber: ''
@@ -95,7 +108,7 @@ export const ContactForm = (props: IContactForm) => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setShouldOpen(false)}>Cancel</Button>
-                    <Button onClick={() => setShouldOpen(false)}>Submit</Button>
+                    <Button onClick={() => handleSubmit()}>Submit</Button>
                 </DialogActions>
             </Dialog>
         </div>
