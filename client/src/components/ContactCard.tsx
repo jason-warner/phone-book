@@ -44,7 +44,6 @@ export const ContactCard = (props: IContactCard) => {
         const newContactList = [...contactCtx.contactList];
         const targetIndex = newContactList.findIndex((x) => x?.id === id);
         newContactList.splice(targetIndex, 1);
-        console.log('id!!!: ', id)
         return setContactCtx({
             contactList: newContactList,
             crudIds: { ...contactCtx.crudIds, deleteId: id },

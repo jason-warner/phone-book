@@ -40,7 +40,7 @@ export const ContactForm = (props: IContactForm) => {
     const handleSubmit = () => {
         setShouldOpen(false);
         if (!isEdit) {
-            const { id, ...newFormData } = formData
+            const { id, ...newFormData } = formData;
             return setContactCtx({
                 contactList: updateContactList(),
                 payload: newFormData,

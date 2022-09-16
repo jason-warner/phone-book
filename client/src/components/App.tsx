@@ -86,7 +86,7 @@ function App() {
   }
   const addMutationOptions = {
     onError: (err: Error) => console.error('delete contact error: ', err), //@ts-ignore
-    onSuccess: (test, res) => console.log('success: ', test)
+    onSuccess: (test, res) => updateContactCtx('triggerSubmit', false)
   }
   const deleteContact = useMutation<IPayload, Error, IDeleteContact>(['deleteContact'], deleteContactMutationFn, deleteMutationOptions);
   const addContact = useMutation<IPayload, Error, IAddContact>(['createContact'], addContactMutationFn, addMutationOptions);
