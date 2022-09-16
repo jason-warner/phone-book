@@ -25,7 +25,6 @@ import {
 
 function App() {
 
-
   //// fn's
   const getContacts = () => request(`http://localhost:4000/graphql`, getAllContactsMutation);
   const deleteContactMutationFn = async () => request(`http://localhost:4000/graphql`, deleteContactMutation, {
@@ -41,8 +40,15 @@ function App() {
   }
   const handleContactsData = (contacts: IContactCard[]) => {
     if (!!contacts) {
-      const newContacts = [...contactCtx.contactList, ...contacts];
-      return updateContactCtx('contactList', newContacts);
+      if (contactCtx.contactList?.length > 0) {
+        const existingContacts = [...contactCtx.contactList];
+        const newContacts = existingContacts.filter((existingContact) => !contacts.find((newContact) => existingContact?.id === newContact.id));
+        const updatedContacts = [...existingContacts, ...newContacts]
+        return updateContactCtx('contactList', updatedContacts);
+      } else {
+        const existingContacts = [...contactCtx.contactList, ...contacts];
+        return updateContactCtx('contactList', existingContacts);
+      }
     }
   }
   const handleDeleteMutation = (id: string | undefined) => {
@@ -52,13 +58,12 @@ function App() {
   }
 
 
-  //// constants
+  //// queries / mutations
   const {
     isLoading: loadingContacts,
     error: loadContactsErr,
     data: contactsData
   } = useQuery(["getAllContacts"], getContacts);
-  const initialContactFormCtx: IContactCtx = { ...initialContactCtx, ...contactsData?.contacts };
   const deleteMutationOptions = {
     onError: (err: Error) => console.error('delete contact error: ', err),
     onSuccess: () => updateContactCtx('crudIds', { ...contactCtx.crudIds, deleteId: '' })
@@ -66,17 +71,18 @@ function App() {
   const deleteContact = useMutation<IPayload, Error, IDeleteContact>(['deleteContact'], deleteContactMutationFn, deleteMutationOptions);
 
 
-
-
+  //// constants
+  const initialContactFormCtx: IContactCtx = { ...initialContactCtx, ...contactsData?.contacts };
 
 
   //// local state
   const [open, setOpen] = React.useState(false);
   const [contactCtx, setContactCtx] = React.useReducer(contactFormReducer, initialContactFormCtx);
 
-  React.useEffect(() => console.log('context: ', contactCtx), [contactCtx]);
   React.useEffect(() => handleContactsData(contactsData?.contacts), [contactsData?.contacts]);
   React.useEffect(() => handleDeleteMutation(contactCtx.crudIds.deleteId), [contactCtx.crudIds.deleteId]);
+
+  React.useEffect(() => console.log('context: ', contactCtx), [contactCtx]);
 
   return (
     <div className="App">
@@ -120,7 +126,6 @@ function App() {
                   else return `contact-${index}`;
                 }
                 const key = chooseKey();
-                // console.log('key: ', key, ' at index ', index);
                 return (
                   <li key={`contact-card-${key}`} className='flex flex-row'>
                     <ContactCard id={key} Key={key} firstName={firstName} lastName={lastName} phoneNumber={phoneNumber} />
