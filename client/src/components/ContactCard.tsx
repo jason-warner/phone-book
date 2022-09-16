@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
     createTheme,
     ThemeProvider,
@@ -15,10 +14,12 @@ import {
 } from '@mui/icons-material'
 import { useContactCtx } from './App';
 
+
+
 export const ContactCard = (props: IContactCard) => {
 
     //// constants
-    const { firstName, lastName, phoneNumber, Key } = props;
+    const { firstName, lastName, phoneNumber, id, Key } = props;
     const name = `${firstName} ${lastName}`;
     const buttonStyle = {
         borderRadius: '100%',
@@ -39,19 +40,24 @@ export const ContactCard = (props: IContactCard) => {
     });
 
     //// fn's
-    const handleDelete = (key: IContactCard['Key']) => {
+    const handleDelete = (id: IContactCard['id']) => {
         const newContactList = [...contactCtx.contactList];
-        const targetIndex = newContactList.findIndex((x) => x.Key === key);
-        delete newContactList[targetIndex];
-        return updateContactCtx('contactList', newContactList);
+        const targetIndex = newContactList.findIndex((x) => x?.id === id);
+        newContactList.splice(targetIndex, 1);
+        console.log('id!!!: ', id)
+        return setContactCtx({
+            contactList: newContactList,
+            crudIds: { ...contactCtx.crudIds, deleteId: id },
+            payload: { ...contactCtx.payload }
+        });
     }
 
     //// regional state
-    const { contactCtx, updateContactCtx } = useContactCtx();
+    const { contactCtx, setContactCtx } = useContactCtx();
 
 
     //// local state
-    // React.useEffect(() => console.log('contactCtx: ', contactCtx), [contactCtx]);
+
 
 
     return (
@@ -70,7 +76,7 @@ export const ContactCard = (props: IContactCard) => {
                             </h6>
                         </div>
 
-                        <Button onClick={() => handleDelete(Key)} sx={buttonStyle} className='rounded-full'>
+                        <Button onClick={() => handleDelete(id)} sx={buttonStyle} className='rounded-full'>
                             <DeleteForeverRounded fontSize='large' className='h-full' />
                         </Button>
 
@@ -83,8 +89,9 @@ export const ContactCard = (props: IContactCard) => {
 
 
 export interface IContactCard {
-    Key: React.Key
-    firstName: String
-    lastName: String
-    phoneNumber: String
+    Key: string
+    id?: string
+    firstName: string
+    lastName: string
+    phoneNumber: string
 }

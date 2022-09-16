@@ -3,6 +3,14 @@ import logo from '../assets/logo.svg'
 import '../styles/App.css';
 import { ContactCard, IContactCard } from './ContactCard'
 import { ContactForm } from './ContactForm';
+import { useMutation, useQuery } from '@tanstack/react-query'
+import request from 'graphql-request'
+import {
+  addContactMutation,
+  editContactMutation,
+  deleteContactMutation,
+  getAllContactsMutation,
+} from '../gql'
 import {
   ThemeProvider,
   createTheme,
@@ -17,40 +25,49 @@ import {
 
 function App() {
 
-  //// constants
-  const addContactButtonStyle = {
-    background: '#61dafb',
-    height: 'fit-content',
-    textTransform: 'unset',
-    "&:hover": {
-      background: "white"
-    }
-  }
-  const buttonTheme = createTheme({
-    components: {
-      MuiButton: {
-        styleOverrides: {
-          root: {
-            "&:hover": {
-              color: "white"
-            }
-          }
-        }
-      }
-    }
-  });
-  const initialContactFormCtx: IContactCtx = { ...initialContactCtx }
-
 
   //// fn's
+  const getContacts = () => request(`http://localhost:4000/graphql`, getAllContactsMutation);
+  const deleteContactMutationFn = async () => request(`http://localhost:4000/graphql`, deleteContactMutation, {
+    deleteContactId: contactCtx.crudIds.deleteId
+  })
   const contactFormReducer = (prevState: IContactCtx, newState: IContactCtx) => {
     return ({ ...prevState, ...newState })
   }
-  const updateContactCtx = (field: keyof typeof initialContactCtx, value: (IPayload | IContactList)) => {
+  const updateContactCtx = (field: keyof typeof initialContactCtx, value: (IPayload | IContactList | ICrudIds)) => {
     const newContactCtx = { ...contactCtx }; //@ts-ignore
     newContactCtx[field] = value;
     return setContactCtx(newContactCtx);
   }
+  const handleContactsData = (contacts: IContactCard[]) => {
+    if (!!contacts) {
+      const newContacts = [...contactCtx.contactList, ...contacts];
+      return updateContactCtx('contactList', newContacts);
+    }
+  }
+  const handleDeleteMutation = (id: string | undefined) => {
+    if (!!id?.length) {
+      return deleteContact.mutate({ deleteContactId: `${id}` });
+    }
+  }
+
+
+  //// constants
+  const {
+    isLoading: loadingContacts,
+    error: loadContactsErr,
+    data: contactsData
+  } = useQuery(["getAllContacts"], getContacts);
+  const initialContactFormCtx: IContactCtx = { ...initialContactCtx, ...contactsData?.contacts };
+  const deleteMutationOptions = {
+    onError: (err: Error) => console.error('delete contact error: ', err),
+    onSuccess: () => updateContactCtx('crudIds', { ...contactCtx.crudIds, deleteId: '' })
+  }
+  const deleteContact = useMutation<IPayload, Error, IDeleteContact>(['deleteContact'], deleteContactMutationFn, deleteMutationOptions);
+
+
+
+
 
 
   //// local state
@@ -58,7 +75,8 @@ function App() {
   const [contactCtx, setContactCtx] = React.useReducer(contactFormReducer, initialContactFormCtx);
 
   React.useEffect(() => console.log('context: ', contactCtx), [contactCtx]);
-
+  React.useEffect(() => handleContactsData(contactsData?.contacts), [contactsData?.contacts]);
+  React.useEffect(() => handleDeleteMutation(contactCtx.crudIds.deleteId), [contactCtx.crudIds.deleteId]);
 
   return (
     <div className="App">
@@ -80,7 +98,7 @@ function App() {
 
                 <ThemeProvider theme={buttonTheme}>
                   <Button
-                    onClick={() => setOpen(true)}
+                    onClick={() => (setOpen(true))}
                     sx={addContactButtonStyle}
                     className='self-center'>
                     <AddRounded sx={{ color: '#282c34' }} className='mr-2' />
@@ -93,11 +111,19 @@ function App() {
 
               <ContactForm shouldOpen={open} setShouldOpen={setOpen} />
 
-              {contactCtx.contactList.map((contact: IContactCard) => {
-                const { Key, firstName, lastName, phoneNumber } = contact;
+              {contactCtx.contactList.map((contact: IContactCard, index: number) => {
+                const { Key, id, firstName, lastName, phoneNumber } = contact;
+
+                const chooseKey = () => {
+                  if (id !== undefined) return id;
+                  else if (Key !== undefined) return Key;
+                  else return `contact-${index}`;
+                }
+                const key = chooseKey();
+                // console.log('key: ', key, ' at index ', index);
                 return (
-                  <li key={`contact-card-${Key}`} className='flex flex-row'>
-                    <ContactCard Key={Key} firstName={firstName} lastName={lastName} phoneNumber={phoneNumber} />
+                  <li key={`contact-card-${key}`} className='flex flex-row'>
+                    <ContactCard id={key} Key={key} firstName={firstName} lastName={lastName} phoneNumber={phoneNumber} />
                   </li>
                 )
               })}
@@ -109,6 +135,29 @@ function App() {
     </div >
   );
 }
+const addContactButtonStyle = {
+  background: '#61dafb',
+  height: 'fit-content',
+  textTransform: 'unset',
+  "&:hover": {
+    background: "white"
+  }
+}
+const buttonTheme = createTheme({
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          "&:hover": {
+            color: "white"
+          }
+        }
+      }
+    }
+  }
+});
+
+
 
 const initialContactForm = {
   firstName: '',
@@ -117,12 +166,17 @@ const initialContactForm = {
 };
 const initialContactCtx = {
   payload: initialContactForm,
-  contactList: []
+  contactList: [],
+  crudIds: {
+    deleteId: '',
+    updateId: '',
+    readId: ''
+  }
 }
 const ContactFormContext = React.createContext<{
   contactCtx: IContactCtx
-  setContactCtx?: React.Dispatch<IContactCtx>
-  updateContactCtx: (field: keyof typeof initialContactCtx, value: IPayload | IContactList) => void
+  setContactCtx: React.Dispatch<IContactCtx>
+  updateContactCtx: (field: keyof typeof initialContactCtx, value: IPayload | IContactList | ICrudIds) => void
 }>({
   contactCtx: initialContactCtx,
   setContactCtx: () => undefined,
@@ -131,22 +185,33 @@ const ContactFormContext = React.createContext<{
 
 export const useContactCtx = () => React.useContext<{
   contactCtx: IContactCtx
-  setContactCtx?: React.Dispatch<IContactCtx>
-  updateContactCtx: (field: keyof typeof initialContactCtx, value: IPayload | IContactList) => void
+  setContactCtx: React.Dispatch<IContactCtx>
+  updateContactCtx: (field: keyof typeof initialContactCtx, value: IPayload | IContactList | ICrudIds) => void
 }>(ContactFormContext);
 
 export default App;
 
 
-type IContactList = IContactCard[];
+export type IContactList = IContactCard[];
 
-interface IContactCtx {
+export interface IContactCtx {
   payload: IPayload
   contactList: IContactList
+  crudIds: ICrudIds
 }
-interface IPayload {
+export interface IPayload {
   phoneNumber: string
   firstName: string
   lastName: string
   id?: string
+}
+
+export interface ICrudIds {
+  deleteId?: string,
+  updateId?: string,
+  readId?: string,
+}
+
+export interface IDeleteContact {
+  deleteContactId: string
 }
