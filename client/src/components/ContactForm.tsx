@@ -16,7 +16,7 @@ import shortid from 'shortid'
 export const ContactForm = (props: IContactForm) => {
 
     //// regional state
-    const { updateContactCtx, contactCtx } = useContactCtx()
+    const { updateContactCtx, contactCtx, setContactCtx } = useContactCtx()
 
 
     //// constants
@@ -39,19 +39,33 @@ export const ContactForm = (props: IContactForm) => {
     }
     const handleSubmit = () => {
         setShouldOpen(false);
-        updateContactCtx('contactList', updateContactList())
+        if (!isEdit) {
+            const { id, ...newFormData } = formData
+            return setContactCtx({
+                contactList: updateContactList(),
+                payload: newFormData,
+                crudIds: { ...contactCtx.crudIds },
+                triggerSubmit: true
+            });
+        } else if (!!isEdit) {
+
+        }
     }
+    const isValid = (data: typeof formData) => Boolean(
+        !!(data.firstName?.length > 0)
+        && !!(data.lastName?.length > 0)
+        && !!(data.phoneNumber?.length > 0)
+    );
 
 
     //// local state
+    const [isEdit, setIsEdit] = React.useState(false);
     const [formData, setFormData] = React.useState({
         id: '',
         firstName: '',
         lastName: '',
         phoneNumber: ''
     });
-
-
     React.useEffect(() => updateContactCtx('payload', formData), [formData]);
 
     return (
@@ -108,7 +122,7 @@ export const ContactForm = (props: IContactForm) => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setShouldOpen(false)}>Cancel</Button>
-                    <Button onClick={() => handleSubmit()}>Submit</Button>
+                    <Button onClick={() => isValid(formData) && handleSubmit()}>Submit</Button>
                 </DialogActions>
             </Dialog>
         </div>

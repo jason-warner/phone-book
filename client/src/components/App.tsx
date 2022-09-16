@@ -23,13 +23,20 @@ import {
   AddRounded
 } from '@mui/icons-material'
 
+const url = `http://localhost:4000/graphql`;
 function App() {
 
   //// fn's
-  const getContacts = () => request(`http://localhost:4000/graphql`, getAllContactsMutation);
-  const deleteContactMutationFn = async () => request(`http://localhost:4000/graphql`, deleteContactMutation, {
+  const getContacts = () => request(url, getAllContactsMutation);
+  const deleteContactMutationFn = async () => request(url, deleteContactMutation, {
     deleteContactId: contactCtx.crudIds.deleteId
-  })
+  });
+  const addContactMutationFn = async () => request(url, addContactMutation, {
+    input: contactCtx.payload
+  });
+  const editContactMutationFn = async () => request(url, editContactMutation, {
+    input: contactCtx.payload
+  });
   const contactFormReducer = (prevState: IContactCtx, newState: IContactCtx) => {
     return ({ ...prevState, ...newState })
   }
@@ -38,12 +45,14 @@ function App() {
     newContactCtx[field] = value;
     return setContactCtx(newContactCtx);
   }
-  const handleContactsData = (contacts: IContactCard[]) => {
+  const handleGetContactsQuery = (contacts: IContactCard[]) => {
     if (!!contacts) {
       if (contactCtx.contactList?.length > 0) {
         const existingContacts = [...contactCtx.contactList];
+        const recentlyAddedContacts = [...existingContacts.filter((x) => !x.id)].splice(1);
+        const newExistingContacts = existingContacts.filter((x) => !!x.id);
         const newContacts = existingContacts.filter((existingContact) => !contacts.find((newContact) => existingContact?.id === newContact.id));
-        const updatedContacts = [...existingContacts, ...newContacts]
+        const updatedContacts = [...newExistingContacts, ...newContacts, ...recentlyAddedContacts];
         return updateContactCtx('contactList', updatedContacts);
       } else {
         const existingContacts = [...contactCtx.contactList, ...contacts];
@@ -54,6 +63,13 @@ function App() {
   const handleDeleteMutation = (id: string | undefined) => {
     if (!!id?.length) {
       return deleteContact.mutate({ deleteContactId: `${id}` });
+    }
+  }
+  const handleAddEditMutation = (triggerSubmit: boolean, payload: IPayload, isAdd: boolean) => {
+    if (!!triggerSubmit && !!isAdd) {
+      addContact.mutate({ input: payload });
+    } else if (!!triggerSubmit && !isAdd) {
+      //editContact.mutate({ updateContactId: updateContactId, input: input})
     }
   }
 
@@ -68,7 +84,12 @@ function App() {
     onError: (err: Error) => console.error('delete contact error: ', err),
     onSuccess: () => updateContactCtx('crudIds', { ...contactCtx.crudIds, deleteId: '' })
   }
+  const addMutationOptions = {
+    onError: (err: Error) => console.error('delete contact error: ', err), //@ts-ignore
+    onSuccess: (test, res) => console.log('success: ', test)
+  }
   const deleteContact = useMutation<IPayload, Error, IDeleteContact>(['deleteContact'], deleteContactMutationFn, deleteMutationOptions);
+  const addContact = useMutation<IPayload, Error, IAddContact>(['createContact'], addContactMutationFn, addMutationOptions);
 
 
   //// constants
@@ -79,8 +100,9 @@ function App() {
   const [open, setOpen] = React.useState(false);
   const [contactCtx, setContactCtx] = React.useReducer(contactFormReducer, initialContactFormCtx);
 
-  React.useEffect(() => handleContactsData(contactsData?.contacts), [contactsData?.contacts]);
+  React.useEffect(() => handleGetContactsQuery(contactsData?.contacts), [contactsData?.contacts]);
   React.useEffect(() => handleDeleteMutation(contactCtx.crudIds.deleteId), [contactCtx.crudIds.deleteId]);
+  React.useEffect(() => handleAddEditMutation(contactCtx.triggerSubmit, contactCtx.payload, true), [contactCtx.triggerSubmit])
 
   React.useEffect(() => console.log('context: ', contactCtx), [contactCtx]);
 
@@ -176,7 +198,8 @@ const initialContactCtx = {
     deleteId: '',
     updateId: '',
     readId: ''
-  }
+  },
+  triggerSubmit: false
 }
 const ContactFormContext = React.createContext<{
   contactCtx: IContactCtx
@@ -203,6 +226,7 @@ export interface IContactCtx {
   payload: IPayload
   contactList: IContactList
   crudIds: ICrudIds
+  triggerSubmit: boolean
 }
 export interface IPayload {
   phoneNumber: string
@@ -219,4 +243,7 @@ export interface ICrudIds {
 
 export interface IDeleteContact {
   deleteContactId: string
+}
+export interface IAddContact {
+  input: IPayload
 }

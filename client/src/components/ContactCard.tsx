@@ -48,7 +48,8 @@ export const ContactCard = (props: IContactCard) => {
         return setContactCtx({
             contactList: newContactList,
             crudIds: { ...contactCtx.crudIds, deleteId: id },
-            payload: { ...contactCtx.payload }
+            payload: { ...contactCtx.payload },
+            triggerSubmit: false
         });
     }
 
