@@ -5,6 +5,7 @@ import { ContactCard, IContactCard } from './ContactCard'
 import { ContactForm } from './ContactForm';
 import { useMutation, useQuery } from '@tanstack/react-query'
 import request from 'graphql-request'
+import shortid from 'shortid'
 import {
   addContactMutation,
   editContactMutation,
@@ -23,37 +24,39 @@ import {
   AddRounded
 } from '@mui/icons-material'
 
-const url = `http://localhost:4000/graphql`;
+
 function App() {
 
   //// fn's
-  const getContacts = () => request(url, getAllContactsMutation);
-  const deleteContactMutationFn = async () => request(url, deleteContactMutation, {
-    deleteContactId: contactCtx.crudIds.deleteId
-  });
-  const addContactMutationFn = async () => request(url, addContactMutation, {
-    input: contactCtx.payload
-  });
-  const editContactMutationFn = async () => request(url, editContactMutation, {
-    input: contactCtx.payload
-  });
   const contactFormReducer = (prevState: IContactCtx, newState: IContactCtx) => {
     return ({ ...prevState, ...newState })
   }
-  const updateContactCtx = (field: keyof typeof initialContactCtx, value: (IPayload | IContactList | ICrudIds)) => {
+  const updateContactCtx = (field: keyof typeof initialContactCtx, value: (IPayload | IContactList | ICrudIds | boolean)) => {
     const newContactCtx = { ...contactCtx }; //@ts-ignore
     newContactCtx[field] = value;
     return setContactCtx(newContactCtx);
   }
+  const getContacts = () => request(url, getAllContactsMutation);
+  const deleteContactMutationFn = () => request(url, deleteContactMutation, {
+    deleteContactId: contactCtx.crudIds.deleteId
+  });
+  const addContactMutationFn = () => request(url, addContactMutation, {
+    input: contactCtx.payload
+  });
+  const editContactMutationFn = () => request(url, editContactMutation, {
+    updateContactId: contactCtx.crudIds.updateId,
+    input: contactCtx.payload
+  });
   const handleGetContactsQuery = (contacts: IContactCard[]) => {
     if (!!contacts) {
       if (contactCtx.contactList?.length > 0) {
         const existingContacts = [...contactCtx.contactList];
-        const recentlyAddedContacts = [...existingContacts.filter((x) => !x.id)].splice(1);
-        const newExistingContacts = existingContacts.filter((x) => !!x.id);
+        const recentlyAddedContacts = [...existingContacts.filter((x) => (!!x.id && x.id?.length > 0 && x.id?.length < 10))];
+        const cleanExistingContacts = existingContacts.filter((x) => (!!x.id && x.id?.length > 9));
         const newContacts = existingContacts.filter((existingContact) => !contacts.find((newContact) => existingContact?.id === newContact.id));
-        const updatedContacts = [...newExistingContacts, ...newContacts, ...recentlyAddedContacts];
-        return updateContactCtx('contactList', updatedContacts);
+        const updatedContacts = [...cleanExistingContacts, ...newContacts, ...recentlyAddedContacts];
+        const newContactList = [...Array.from(new Set(updatedContacts))];
+        return updateContactCtx('contactList', newContactList);
       } else {
         const existingContacts = [...contactCtx.contactList, ...contacts];
         return updateContactCtx('contactList', existingContacts);
@@ -65,19 +68,24 @@ function App() {
       return deleteContact.mutate({ deleteContactId: `${id}` });
     }
   }
-  const handleAddEditMutation = (triggerSubmit: boolean, payload: IPayload, isAdd: boolean) => {
-    if (!!triggerSubmit && !!isAdd) {
+  const handleAddMutation = (triggerSubmit: boolean, payload: IPayload, isEdit: boolean) => {
+    if (!!triggerSubmit && !isEdit) {
       addContact.mutate({ input: payload });
-    } else if (!!triggerSubmit && !isAdd) {
-      //editContact.mutate({ updateContactId: updateContactId, input: input})
     }
+  }
+  const handleEditMutation = (triggerSubmit: boolean, payload: IPayload, isEdit: boolean) => {
+    if (!!isEdit) {
+      setOpen(true);
+      if (!!triggerSubmit) {
+        const updateContactId = `${contactCtx.crudIds.updateId}`;
+        editContact.mutate({ updateContactId: updateContactId, input: payload });
+      }
+    } else if(!isEdit) return setOpen(false);
   }
 
 
   //// queries / mutations
   const {
-    isLoading: loadingContacts,
-    error: loadContactsErr,
     data: contactsData
   } = useQuery(["getAllContacts"], getContacts);
   const deleteMutationOptions = {
@@ -85,11 +93,22 @@ function App() {
     onSuccess: () => updateContactCtx('crudIds', { ...contactCtx.crudIds, deleteId: '' })
   }
   const addMutationOptions = {
-    onError: (err: Error) => console.error('delete contact error: ', err), //@ts-ignore
-    onSuccess: (test, res) => updateContactCtx('triggerSubmit', false)
+    onError: (err: Error) => console.error('add contact error: ', err),
+    onSuccess: () => updateContactCtx('triggerSubmit', false),
+  }
+  const editMutationOptions = {
+    onError: (err: Error) => console.error('edit contact error: ', err), 
+    onSuccess: () => setContactCtx({
+      crudIds: { ...contactCtx.crudIds, updateId: '' },
+      triggerSubmit: false,
+      isEdit: false,
+      contactList: contactCtx.contactList,
+      payload: contactCtx.payload,
+    }),
   }
   const deleteContact = useMutation<IPayload, Error, IDeleteContact>(['deleteContact'], deleteContactMutationFn, deleteMutationOptions);
   const addContact = useMutation<IPayload, Error, IAddContact>(['createContact'], addContactMutationFn, addMutationOptions);
+  const editContact = useMutation<IPayload, Error, IEditContact>(['createContact'], editContactMutationFn, editMutationOptions);
 
 
   //// constants
@@ -102,9 +121,8 @@ function App() {
 
   React.useEffect(() => handleGetContactsQuery(contactsData?.contacts), [contactsData?.contacts]);
   React.useEffect(() => handleDeleteMutation(contactCtx.crudIds.deleteId), [contactCtx.crudIds.deleteId]);
-  React.useEffect(() => handleAddEditMutation(contactCtx.triggerSubmit, contactCtx.payload, true), [contactCtx.triggerSubmit])
-
-  React.useEffect(() => console.log('context: ', contactCtx), [contactCtx]);
+  React.useEffect(() => handleAddMutation(contactCtx.triggerSubmit, contactCtx.payload, contactCtx.isEdit), [contactCtx.triggerSubmit]);
+  React.useEffect(() => handleEditMutation(contactCtx.triggerSubmit, contactCtx.payload, contactCtx.isEdit), [contactCtx.crudIds.updateId, contactCtx.triggerSubmit])
 
   return (
     <div className="App">
@@ -139,18 +157,20 @@ function App() {
 
               <ContactForm shouldOpen={open} setShouldOpen={setOpen} />
 
-              {contactCtx.contactList.map((contact: IContactCard, index: number) => {
-                const { Key, id, firstName, lastName, phoneNumber } = contact;
+              {contactCtx.contactList.map((contact: IContactCard) => {
+                const { id, firstName, lastName, phoneNumber } = contact;
 
                 const chooseKey = () => {
                   if (id !== undefined) return id;
-                  else if (Key !== undefined) return Key;
-                  else return `contact-${index}`;
+                  else {
+                    const shortKey = shortid.generate();
+                    return shortKey;
+                  };
                 }
                 const key = chooseKey();
                 return (
                   <li key={`contact-card-${key}`} className='flex flex-row'>
-                    <ContactCard id={key} Key={key} firstName={firstName} lastName={lastName} phoneNumber={phoneNumber} />
+                    <ContactCard id={key} firstName={firstName} lastName={lastName} phoneNumber={phoneNumber} />
                   </li>
                 )
               })}
@@ -185,6 +205,7 @@ const buttonTheme = createTheme({
 });
 
 
+const url = `http://localhost:4000/graphql`;
 
 const initialContactForm = {
   firstName: '',
@@ -199,12 +220,13 @@ const initialContactCtx = {
     updateId: '',
     readId: ''
   },
-  triggerSubmit: false
+  triggerSubmit: false,
+  isEdit: false
 }
 const ContactFormContext = React.createContext<{
   contactCtx: IContactCtx
   setContactCtx: React.Dispatch<IContactCtx>
-  updateContactCtx: (field: keyof typeof initialContactCtx, value: IPayload | IContactList | ICrudIds) => void
+  updateContactCtx: (field: keyof typeof initialContactCtx, value: IPayload | IContactList | ICrudIds | boolean) => void
 }>({
   contactCtx: initialContactCtx,
   setContactCtx: () => undefined,
@@ -214,7 +236,7 @@ const ContactFormContext = React.createContext<{
 export const useContactCtx = () => React.useContext<{
   contactCtx: IContactCtx
   setContactCtx: React.Dispatch<IContactCtx>
-  updateContactCtx: (field: keyof typeof initialContactCtx, value: IPayload | IContactList | ICrudIds) => void
+  updateContactCtx: (field: keyof typeof initialContactCtx, value: IPayload | IContactList | ICrudIds | boolean) => void
 }>(ContactFormContext);
 
 export default App;
@@ -227,6 +249,7 @@ export interface IContactCtx {
   contactList: IContactList
   crudIds: ICrudIds
   triggerSubmit: boolean
+  isEdit: boolean
 }
 export interface IPayload {
   phoneNumber: string
@@ -246,4 +269,14 @@ export interface IDeleteContact {
 }
 export interface IAddContact {
   input: IPayload
+}
+export interface IEditContact {
+  input: IPayload,
+  updateContactId: string
+}
+
+export interface IEditPayload {
+  newFirstName: string
+  newLastName: string
+  newPhoneNumber: string
 }

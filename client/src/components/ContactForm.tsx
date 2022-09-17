@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useContactCtx } from './App'
+import { IPayload, useContactCtx } from './App'
 import {
     FormControl,
     Box,
@@ -21,7 +21,12 @@ export const ContactForm = (props: IContactForm) => {
 
     //// constants
     const { shouldOpen, setShouldOpen } = props;
-
+    const initialFormData = {
+        id: '',
+        firstName: '',
+        lastName: '',
+        phoneNumber: ''
+    }
 
 
     //// fn's
@@ -30,25 +35,52 @@ export const ContactForm = (props: IContactForm) => {
         newFormData[field] = value;
         return setFormData(newFormData);
     }
-    const updateContactList = () => {
+    const addToContactList = () => {
         const key = shortid.generate();
-        const newContact = { ...contactCtx.payload, Key: key };
+        const newContact = { ...contactCtx.payload, Key: key, id: key };
         const newContactList = contactCtx.contactList;
         newContactList.push(newContact);
         return newContactList;
     }
+    const updateContactList = () => {
+        const newContactList = [...contactCtx.contactList];
+        const targetIndex = newContactList.findIndex((x) => x.id === formData.id);
+        if (targetIndex >= 0) {
+            newContactList[targetIndex] = formData;
+        }
+        return newContactList;
+    }
     const handleSubmit = () => {
+        const isEdit = contactCtx.isEdit;
         setShouldOpen(false);
+        const { firstName, lastName, phoneNumber } = formData;
+
         if (!isEdit) {
-            const { id, ...newFormData } = formData;
+            const newFormData = {
+                firstName: firstName,
+                lastName: lastName,
+                phoneNumber: phoneNumber
+            }
             return setContactCtx({
-                contactList: updateContactList(),
+                contactList: addToContactList(),
                 payload: newFormData,
-                crudIds: { ...contactCtx.crudIds },
-                triggerSubmit: true
+                crudIds: contactCtx.crudIds,
+                triggerSubmit: true,
+                isEdit: false
             });
         } else if (!!isEdit) {
-
+            const newFormData = {
+                newFirstName: firstName,
+                newLastName: lastName,
+                newPhoneNumber: phoneNumber
+            }
+            return setContactCtx({
+                contactList: updateContactList(), // @ts-ignore
+                payload: newFormData,
+                crudIds: contactCtx.crudIds,
+                triggerSubmit: true,
+                isEdit: true
+            });
         }
     }
     const isValid = (data: typeof formData) => Boolean(
@@ -56,25 +88,36 @@ export const ContactForm = (props: IContactForm) => {
         && !!(data.lastName?.length > 0)
         && !!(data.phoneNumber?.length > 0)
     );
+    const handleUpdateContact = () => {
+        const updateId = contactCtx.crudIds.updateId;
+        if (!(!!updateId)) return
+        else if (!!(updateId?.length < 1)) return;
+        else if (updateId?.length > 0) {
+            const updateContact = contactCtx.contactList.find((x) => x.id === updateId);
+            if (!!updateContact) return setFormData(updateContact);
+        }
+    }
+    const handleOnClose = (shouldOpen: boolean) => {
+        if (!shouldOpen) return (
+            updateContactCtx('isEdit', false),
+            setFormData(initialFormData)
+        )
+    }
 
 
     //// local state
-    const [isEdit, setIsEdit] = React.useState(false);
-    const [formData, setFormData] = React.useState({
-        id: '',
-        firstName: '',
-        lastName: '',
-        phoneNumber: ''
-    });
+    const [formData, setFormData] = React.useState(initialFormData as IPayload);
     React.useEffect(() => updateContactCtx('payload', formData), [formData]);
+    React.useEffect(() => handleUpdateContact(), [contactCtx.crudIds.updateId]);
+    React.useEffect(() => handleOnClose(shouldOpen), [shouldOpen]);
 
     return (
         <div>
             <Dialog open={shouldOpen} onClose={() => setShouldOpen(false)}>
-                <DialogTitle>Add Contact</DialogTitle>
+                <DialogTitle>{!!contactCtx.isEdit ? 'Edit' : 'Add'} Contact</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Please fill out the form below, then click submit.
+                        Please {!!contactCtx.isEdit ? 'update' : 'fill out'} the form below, then click submit.
                     </DialogContentText>
                     <FormControl sx={{ m: 1, width: '25ch' }} variant="outlined">
                         < Box className='flex flex-row'>
@@ -85,10 +128,11 @@ export const ContactForm = (props: IContactForm) => {
                                 autoFocus
                                 margin="dense"
                                 id="name"
-                                label="First Name"
+                                label={!!contactCtx.isEdit ? "" : "First Name"}
                                 type="text"
                                 fullWidth
                                 variant="standard"
+                                value={formData.firstName}
                             />
                             <TextField
                                 onChange={({ currentTarget }: React.ChangeEvent<HTMLInputElement>) =>
@@ -97,10 +141,11 @@ export const ContactForm = (props: IContactForm) => {
                                 autoFocus
                                 margin="dense"
                                 id="name"
-                                label="Last Name"
+                                label={!!contactCtx.isEdit ? "" : "Last Name"}
                                 type="name"
                                 fullWidth
                                 variant="standard"
+                                value={formData.lastName}
                             />
                         </Box>
                         <Box className='flex flex-row w-1/2'>
@@ -111,10 +156,11 @@ export const ContactForm = (props: IContactForm) => {
                                 autoFocus
                                 margin="dense"
                                 id="name"
-                                label="Phone Number"
+                                label={!!contactCtx.isEdit ? "" : "Phone Number"}
                                 type="tel"
                                 fullWidth
                                 variant="standard"
+                                value={formData.phoneNumber}
                             />
                         </Box>
                     </FormControl>
