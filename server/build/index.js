@@ -3,16 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
-const mongoose_1 = __importDefault(require("mongoose"));
+const connection_1 = require("./database/connection");
 const apollo_server_express_1 = require("apollo-server-express");
 const typeDefs_1 = require("./schemas/gql/typeDefs");
 const resolvers_1 = require("./schemas/gql/resolvers");
-dotenv_1.default.config({ path: '../.env' });
-const username = encodeURIComponent(String(process.env.MONGO_PHONE_USER));
-const password = encodeURIComponent(String(process.env.MONGO_PHONE_PASS));
-const dbURI = `mongodb://${username}:${password}@127.0.0.1:27017/phone-book`;
 const startApolloServer = async () => {
     const app = (0, express_1.default)();
     const server = new apollo_server_express_1.ApolloServer({
@@ -27,12 +22,12 @@ const startApolloServer = async () => {
 };
 const main = async () => {
     try {
-        await mongoose_1.default.connect(dbURI)
-            .then(async () => (console.log('Connected to the database.'),
-            await startApolloServer()));
+        await (0, connection_1.mongoConnection)()
+            .then(async () => (await startApolloServer()));
     }
-    catch (e) {
-        console.error(e);
+    catch (error) {
+        console.error(error);
     }
 };
-main().catch(console.error);
+main()
+    .catch((error) => console.error(`Root Server Error: ${error}`));

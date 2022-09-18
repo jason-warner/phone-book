@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+  # server:
+  #   build: 
+  #     context: ../server
+  #     dockerfile: Dockerfile
+  #   image: phone-book-server:v1.0
+  #   container_name: phone-book-server
+  #   env_file: .env
+  #   environment:
+  #     - test=variable
+  #   ports:
+  #     - "4000"
+  #   volumes:
+  #     - server:/usr/gql-server
+  #     - node_modules:/home/node/app/node_modules
+  #   networks:
+  #     - phone-book-network
+
+  # client:
+  #   build: 
+  #     context: ../client
+  #     dockerfile: Dockerfile
+  #   image: phone-book-client:v1.0
+  #   container_name: phone-book-client
+  #   env_file: .env
+  #   environment:
+  #     - test=variable
+  #   ports:
+  #     - "3000"
+  #   networks:
+  #     - phone-book-network
+
+  database:
+    image: mongo:4.1.8-xenial
+    container_name: phone-book-db
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=$MONGO_PHONE_USER
+      - MONGO_INITDB_ROOT_PASSWORD=$MONGO_PHONE_PASS
+    volumes:  
+      - dbdata:/data/db   
+    networks:
+      - phone-book-network 
+
+networks:
+  phone-book-network:
+    driver: bridge
+
+volumes:
+  dbdata:
