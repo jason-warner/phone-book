@@ -6,6 +6,6 @@ const contactSchema = new Schema({
   phoneNumber: String
 });
 
-const Contact = mongoose.model('contact', contactSchema, 'contact');
+const Contact = mongoose.model('contact', contactSchema);
 
 export { Contact }

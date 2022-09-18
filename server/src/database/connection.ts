@@ -2,10 +2,7 @@ import mongoose from "mongoose";
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '../.env' });
-const username = encodeURIComponent(String(process.env.MONGO_PHONE_USER));
-const password = encodeURIComponent(String(process.env.MONGO_PHONE_PASS));
-const dbURI = `mongodb://${username}:${password}@127.0.0.1:27017/phone-book`;
-
+const dbURI = String(process.env.ME_CONFIG_MONGODB_URL);
 
 export const mongoConnection = async () => {
     try {

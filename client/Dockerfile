@@ -11,6 +11,6 @@ RUN cd /usr/gql-server \
 
 RUN yarn build
 
-EXPOSE 4000
+EXPOSE 3000
 
 CMD ["yarn", "start"]
