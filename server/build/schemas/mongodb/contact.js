@@ -31,5 +31,5 @@ const contactSchema = new mongoose_1.Schema({
     lastName: String,
     phoneNumber: String
 });
-const Contact = mongoose_1.default.model('contact', contactSchema);
+const Contact = mongoose_1.default.model('contact', contactSchema, 'contacts');
 exports.Contact = Contact;

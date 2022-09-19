@@ -38,13 +38,13 @@ export const ContactCard = (props: IContactCard) => {
         });
     }
     const handleEdit = (id: IContactCard['id']) => {
-        setContactCtx({
+        return setContactCtx({
             payload: contactCtx.payload,
             contactList: contactCtx.contactList,
             crudIds: { ...contactCtx.crudIds, updateId: id },
             triggerSubmit: contactCtx.triggerSubmit,
             isEdit: true
-        })
+        });
     }
 
     //// regional state

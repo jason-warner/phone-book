@@ -51,8 +51,8 @@ export const ContactForm = (props: IContactForm) => {
         return newContactList;
     }
     const handleSubmit = () => {
-        const isEdit = contactCtx.isEdit;
         setShouldOpen(false);
+        const isEdit = contactCtx.isEdit;
         const { firstName, lastName, phoneNumber } = formData;
 
         if (!isEdit) {
