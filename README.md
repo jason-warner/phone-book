@@ -1,6 +1,6 @@
 # M.E.R.N GraphQL Full Stack Phone Book
 
-Apollo Server with Express middleware connected to a Mongo database serving a TS React client using react-query.
+Node Apollo Server connected to a Mongo database serving a TS React client using react-query.
 
 ![Alt text](https://live.staticflickr.com/65535/52368178296_ca308788e8_b.jpg)
 

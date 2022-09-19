@@ -1,42 +1,58 @@
 version: '3.8'
 
 services:
-  # database:
-  #   image: mongo
-  #   container_name: phone-book-db
-  #   restart: always
-  #   ports:
-  #     - "27017:27017"
-  #   volumes:
-  #     - dbdata:/data/db
-  #   networks:
-  #     - phone-book-network
-  #   environment:
-  #     MONGO_INITDB_ROOT_USERNAME: root
-  #     MONGO_INITDB_ROOT_PASSWORD: password
-
+  db:
+    container_name: mongo-dev
+    image: mongo:4.2
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_DATABASE=auth
+      - MONGO_INITDB_ROOT_PASSWORD=pass
+    networks: 
+      - mongo-compose-network
+    ports:
+      - '27017:27017'
+    volumes: 
+      - ./data:/data/db
+  
+  mongo-express:
+    container_name: mongo-express
+    image: mongo-express
+    depends_on:
+      - db
+    networks: 
+      - mongo-compose-network
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo-dev
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=pass
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=tribes
+    ports:
+      - '8081:8081'
+    volumes: 
+      - ./data:/data/db
 
   server:
     build:
       context: ./server/
       dockerfile: Dockerfile
     image: phone-book-server
-    # depends_on:
-    #   - database
+    depends_on:
+      - mongo-express
     container_name: phone-book-server
     environment:
       MONGO_INITDB_PORT: 27017
-      MONGO_INITDB_HOST: mongo
-      ME_CONFIG_MONGODB_ADMINUSERNAME: MONGO_PHONE_USER
-      ME_CONFIG_MONGODB_ADMINPASSWORD: admin
-      # ME_CONFIG_MONGODB_URL: mongodb://root:password@mongo:27017/
+      MONGO_INITDB_HOST: mongo-dev
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: pass
     ports:
       - "4000:4000"
     volumes:
       - dbdata:/server
       - .:/server
     networks:
-      - phone-book-network
+      - mongo-compose-network
 
   client:
     build:
@@ -50,10 +66,10 @@ services:
     ports:
       - "3000:3000"
     networks:
-      - phone-book-network
+      - mongo-compose-network
 
 networks:
-  phone-book-network:
+  mongo-compose-network:
     driver: bridge
 
 volumes:
